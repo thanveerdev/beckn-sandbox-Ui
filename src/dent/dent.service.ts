@@ -12,7 +12,9 @@ export class DentService {
         switch (domain) {
             case DentTypeEnum.DENTEVCHARGIN:
             case DentTypeEnum.EVCHARGINGUEI:
+            case DentTypeEnum.UEICHARGING:
                 return new EVApiService();
+
             default:
                 throw new DomainNotFoundException();
         }
