@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌐 Beckn Protocol Sandbox - Connected</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .connection-status {
+            background: #17a2b8;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+
+        .connection-status.connected {
+            background: #28a745;
+        }
+
+        .connection-status.error {
+            background: #dc3545;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .domains-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .domain-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid transparent;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .domain-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .domain-card.active {
+            border-color: #007bff;
+            transform: translateY(-5px);
+        }
+
+        .domain-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .domain-card h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .domain-card p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .search-section.active {
+            display: block;
+        }
+
+        .search-form {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .search-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            justify-self: start;
+        }
+
+        .search-btn:hover {
+            background: #0056b3;
+        }
+
+        .search-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .response-section {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .response-section h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .response-content {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            color: #007bff;
+            font-style: italic;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .info-section h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .info-section p {
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .info-section ul {
+            padding-left: 1.5rem;
+            color: #666;
+        }
+
+        .info-section li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem 0.5rem;
+            }
+            
+            .domains-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌐 Beckn Protocol Sandbox - Connected</h1>
+        <p>Real-time API integration with Beckn backend services</p>
+        <div class="connection-status" id="connectionStatus">🔗 Checking backend connection...</div>
+    </div>
+
+    <div class="container">
+        <div class="domains-grid">
+            <div class="domain-card" data-domain="mobility">
+                <div class="domain-icon">🚗</div>
+                <h3>Mobility</h3>
+                <p>Ride-hailing, public transit, and transportation services</p>
+            </div>
+            
+            <div class="domain-card" data-domain="tourism">
+                <div class="domain-icon">🏔️</div>
+                <h3>Tourism</h3>
+                <p>Travel packages, hotels, and tourism experiences</p>
+            </div>
+            
+            <div class="domain-card" data-domain="local-retail">
+                <div class="domain-icon">🛒</div>
+                <h3>Local Retail</h3>
+                <p>Grocery, electronics, and local shopping</p>
+            </div>
+            
+            <div class="domain-card" data-domain="dhp">
+                <div class="domain-icon">🏥</div>
+                <h3>Healthcare (DHP)</h3>
+                <p>Medical consultations, pharmacy, and diagnostics</p>
+            </div>
+            
+            <div class="domain-card" data-domain="dsep">
+                <div class="domain-icon">📚</div>
+                <h3>Education (DSEP)</h3>
+                <p>Courses, training, and educational services</p>
+            </div>
+            
+            <div class="domain-card" data-domain="logistics">
+                <div class="domain-icon">📦</div>
+                <h3>Logistics</h3>
+                <p>Package delivery and logistics services</p>
+            </div>
+        </div>
+
+        <div class="search-section" id="searchSection">
+            <h3 id="searchTitle">Search in Domain</h3>
+            <div class="search-form" id="searchForm">
+                <!-- Dynamic form fields will be inserted here -->
+            </div>
+            <button class="search-btn" onclick="performSearch()" id="searchButton">Search</button>
+            
+            <div class="response-section" id="responseSection" style="display: none;">
+                <h3>Beckn API Response</h3>
+                <div class="response-content" id="responseContent"></div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>Connected Backend Features</h3>
+            <p>
+                This version connects directly to the Beckn sandbox backend API running on localhost:3000. 
+                It makes real HTTP requests to the NestJS backend and displays actual responses from the 
+                domain-specific controllers.
+            </p>
+            
+            <h3>API Endpoints Used</h3>
+            <ul>
+                <li><strong>/mobility/search</strong> - Transportation and ride services</li>
+                <li><strong>/tourism/search</strong> - Travel and tourism experiences</li>
+                <li><strong>/local-retail/search</strong> - Local shopping and retail</li>
+                <li><strong>/dhp/search</strong> - Healthcare services (consultations, pharmacy)</li>
+                <li><strong>/dsep/search</strong> - Education services (courses, jobs)</li>
+                <li><strong>/logistics/search</strong> - Package delivery services</li>
+            </ul>
+            
+            <h3>Backend Requirements</h3>
+            <p>Make sure your backend is running with: <code>npm run start:dev</code></p>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:3000';
+        let selectedDomain = '';
+        let backendConnected = false;
+
+        const domainFields = {
+            mobility: [
+                { name: 'pickup', label: 'Pickup Location', type: 'text', placeholder: 'Enter pickup location' },
+                { name: 'destination', label: 'Destination', type: 'text', placeholder: 'Enter destination' },
+                { name: 'vehicleType', label: 'Vehicle Type', type: 'select', options: ['auto', 'cab', 'bike'] }
+            ],
+            tourism: [
+                { name: 'category', label: 'Category', type: 'select', options: ['trekking', 'sightseeing', 'adventure', 'cultural'] },
+                { name: 'location', label: 'Location', type: 'text', placeholder: 'Enter location' },
+                { name: 'duration', label: 'Duration (days)', type: 'number', placeholder: '3' }
+            ],
+            'local-retail': [
+                { name: 'category', label: 'Category', type: 'select', options: ['groceries', 'electronics', 'clothing', 'books'] },
+                { name: 'query', label: 'Search Query', type: 'text', placeholder: 'What are you looking for?' },
+                { name: 'delivery', label: 'Delivery Type', type: 'select', options: ['home_delivery', 'pickup'] }
+            ],
+            dhp: [
+                { name: 'specialty', label: 'Specialty', type: 'select', options: ['general', 'cardiology', 'orthopedics', 'dermatology'] },
+                { name: 'consultationType', label: 'Consultation Type', type: 'select', options: ['online', 'physical'] },
+                { name: 'urgency', label: 'Urgency', type: 'select', options: ['routine', 'urgent', 'emergency'] }
+            ],
+            dsep: [
+                { name: 'subject', label: 'Subject', type: 'text', placeholder: 'e.g., Programming, Design' },
+                { name: 'level', label: 'Level', type: 'select', options: ['beginner', 'intermediate', 'advanced'] },
+                { name: 'duration', label: 'Duration', type: 'select', options: ['1-week', '1-month', '3-months', '6-months'] }
+            ],
+            logistics: [
+                { name: 'packageType', label: 'Package Type', type: 'select', options: ['document', 'fragile', 'heavy', 'perishable'] },
+                { name: 'origin', label: 'Origin', type: 'text', placeholder: 'Pickup location' },
+                { name: 'destination', label: 'Destination', type: 'text', placeholder: 'Delivery location' }
+            ]
+        };
+
+        // Check backend connection on page load
+        window.addEventListener('load', checkBackendConnection);
+
+        async function checkBackendConnection() {
+            const statusElement = document.getElementById('connectionStatus');
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    backendConnected = true;
+                    statusElement.textContent = '✅ Backend connected';
+                    statusElement.className = 'connection-status connected';
+                } else {
+                    throw new Error('Backend not responding');
+                }
+            } catch (error) {
+                backendConnected = false;
+                statusElement.textContent = '❌ Backend not available - Run: npm run start:dev';
+                statusElement.className = 'connection-status error';
+                console.error('Backend connection failed:', error);
+            }
+        }
+
+        // Domain selection
+        document.querySelectorAll('.domain-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove active class from all cards
+                document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked card
+                this.classList.add('active');
+                
+                // Get domain
+                selectedDomain = this.dataset.domain;
+                
+                // Show search section
+                document.getElementById('searchSection').classList.add('active');
+                document.getElementById('searchTitle').textContent = `Search in ${selectedDomain.charAt(0).toUpperCase() + selectedDomain.slice(1).replace('-', ' ')}`;
+                
+                // Generate form
+                generateForm();
+                
+                // Hide previous response
+                document.getElementById('responseSection').style.display = 'none';
+            });
+        });
+
+        function generateForm() {
+            const formContainer = document.getElementById('searchForm');
+            formContainer.innerHTML = '';
+            
+            const fields = domainFields[selectedDomain] || [];
+            
+            fields.forEach(field => {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+                
+                const label = document.createElement('label');
+                label.textContent = field.label;
+                label.setAttribute('for', field.name);
+                
+                let input;
+                if (field.type === 'select') {
+                    input = document.createElement('select');
+                    input.innerHTML = `<option value="">Select ${field.label}</option>`;
+                    field.options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option;
+                        optionElement.textContent = option.charAt(0).toUpperCase() + option.slice(1).replace('_', ' ');
+                        input.appendChild(optionElement);
+                    });
+                } else {
+                    input = document.createElement('input');
+                    input.type = field.type;
+                    input.placeholder = field.placeholder || '';
+                }
+                
+                input.id = field.name;
+                input.name = field.name;
+                
+                formGroup.appendChild(label);
+                formGroup.appendChild(input);
+                formContainer.appendChild(formGroup);
+            });
+        }
+
+        async function performSearch() {
+            const searchButton = document.getElementById('searchButton');
+            const responseSection = document.getElementById('responseSection');
+            const responseContent = document.getElementById('responseContent');
+            
+            // Get form data
+            const formInputs = document.getElementById('searchForm').querySelectorAll('input, select');
+            const searchParams = {};
+            formInputs.forEach(input => {
+                if (input.value) {
+                    searchParams[input.name] = input.value;
+                }
+            });
+            
+            // Show loading state
+            responseSection.style.display = 'block';
+            responseContent.className = 'response-content loading';
+            responseContent.textContent = '🔄 Calling backend API...';
+            searchButton.disabled = true;
+            searchButton.textContent = 'Searching...';
+            
+            try {
+                // Make real API call to backend
+                const response = await callBackendAPI(selectedDomain, searchParams);
+                
+                // Show successful response
+                responseContent.className = 'response-content';
+                responseContent.textContent = JSON.stringify(response, null, 2);
+                
+            } catch (error) {
+                // Show error
+                responseContent.className = 'response-content error';
+                responseContent.textContent = `❌ API Error: ${error.message}\n\nMake sure the backend is running with: npm run start:dev\n\nFalling back to mock response...`;
+                
+                // Show fallback mock response after a delay
+                setTimeout(() => {
+                    const mockResponse = generateMockResponse(selectedDomain, searchParams);
+                    responseContent.className = 'response-content';
+                    responseContent.textContent = JSON.stringify(mockResponse, null, 2);
+                }, 2000);
+                
+                console.error('Backend API call failed:', error);
+            } finally {
+                searchButton.disabled = false;
+                searchButton.textContent = 'Search';
+            }
+        }
+
+        async function callBackendAPI(domain, params) {
+            // Create Beckn-compliant request payload
+            const requestPayload = {
+                context: {
+                    domain: domain,
+                    country: "IND",
+                    city: "std:080",
+                    action: "search",
+                    core_version: "1.1.0",
+                    bap_id: "beckn-sandbox-bap",
+                    bap_uri: "https://beckn-sandbox-bap.example.com",
+                    transaction_id: generateId(),
+                    message_id: generateId(),
+                    timestamp: new Date().toISOString(),
+                    ttl: "PT10M"
+                },
+                message: {
+                    intent: buildIntent(domain, params)
+                }
+            };
+
+            const response = await fetch(`${BACKEND_URL}/${domain}/search`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                mode: 'cors',
+                body: JSON.stringify(requestPayload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        function buildIntent(domain, params) {
+            const intent = {};
+            
+            // Build domain-specific intent based on parameters
+            switch(domain) {
+                case 'mobility':
+                    if (params.pickup || params.destination) {
+                        intent.fulfillment = {
+                            stops: []
+                        };
+                        if (params.pickup) {
+                            intent.fulfillment.stops.push({
+                                type: "start",
+                                location: { descriptor: { name: params.pickup } }
+                            });
+                        }
+                        if (params.destination) {
+                            intent.fulfillment.stops.push({
+                                type: "end", 
+                                location: { descriptor: { name: params.destination } }
+                            });
+                        }
+                    }
+                    if (params.vehicleType) {
+                        intent.category = { descriptor: { code: params.vehicleType } };
+                    }
+                    break;
+                    
+                case 'tourism':
+                    if (params.category) {
+                        intent.category = { descriptor: { code: params.category } };
+                    }
+                    if (params.location) {
+                        intent.fulfillment = {
+                            stops: [{
+                                type: "start",
+                                location: { descriptor: { name: params.location } }
+                            }]
+                        };
+                    }
+                    break;
+                    
+                case 'local-retail':
+                    if (params.query) {
+                        intent.item = { descriptor: { name: params.query } };
+                    }
+                    if (params.category) {
+                        intent.category = { descriptor: { code: params.category } };
+                    }
+                    break;
+                    
+                case 'dhp':
+                    if (params.specialty) {
+                        intent.category = { descriptor: { code: params.specialty } };
+                    }
+                    break;
+                    
+                case 'dsep':
+                    if (params.subject) {
+                        intent.item = { descriptor: { name: params.subject } };
+                    }
+                    if (params.level) {
+                        intent.category = { descriptor: { code: params.level } };
+                    }
+                    break;
+                    
+                case 'logistics':
+                    if (params.origin || params.destination) {
+                        intent.fulfillment = {
+                            stops: []
+                        };
+                        if (params.origin) {
+                            intent.fulfillment.stops.push({
+                                type: "start",
+                                location: { descriptor: { name: params.origin } }
+                            });
+                        }
+                        if (params.destination) {
+                            intent.fulfillment.stops.push({
+                                type: "end",
+                                location: { descriptor: { name: params.destination } }
+                            });
+                        }
+                    }
+                    break;
+            }
+            
+            return intent;
+        }
+
+        // Fallback mock response generator (same as original demo)
+        function generateMockResponse(domain, params) {
+            const baseContext = {
+                domain: domain,
+                action: "on_search",
+                location: {
+                    country: { code: "IND" },
+                    city: { code: "std:080" }
+                },
+                version: "1.1.0",
+                bap_id: "beckn-frontend-bap",
+                bap_url: "https://beckn-frontend.example.com",
+                bpp_id: "beckn-sandbox-bpp.becknprotocol.io",
+                bpp_uri: "https://sandbox-bpp-network.becknprotocol.io/",
+                transaction_id: generateId(),
+                message_id: generateId(),
+                timestamp: new Date().toISOString(),
+                ttl: "PT10M"
+            };
+
+            const mockCatalogs = {
+                mobility: {
+                    descriptor: { name: "Mobility Services" },
+                    providers: [{
+                        id: "mobility-provider-1",
+                        descriptor: { name: "QuickRide" },
+                        items: [{
+                            id: "ride-1",
+                            descriptor: { 
+                                name: `${params.vehicleType || 'Economy'} Ride`,
+                                short_desc: `From ${params.pickup || 'Pickup Location'} to ${params.destination || 'Destination'}`
+                            },
+                            price: { value: "150", currency: "INR" },
+                            matched: true
+                        }]
+                    }]
+                },
+                tourism: {
+                    descriptor: { name: "Tourism Services" },
+                    providers: [{
+                        id: "tourism-provider-1",
+                        descriptor: { name: "Adventure Tours" },
+                        items: [{
+                            id: "tour-1",
+                            descriptor: { 
+                                name: `${params.category || 'Adventure'} Experience`,
+                                short_desc: `${params.duration || '3'} days ${params.category || 'adventure'} tour in ${params.location || 'scenic location'}`
+                            },
+                            price: { value: "5000", currency: "INR" },
+                            matched: true
+                        }]
+                    }]
+                },
+                'local-retail': {
+                    descriptor: { name: "Local Retail" },
+                    providers: [{
+                        id: "retail-provider-1",
+                        descriptor: { name: "FreshMart" },
+                        items: [{
+                            id: "product-1",
+                            descriptor: { 
+                                name: params.query || `${params.category || 'Product'} Items`,
+                                short_desc: `Fresh ${params.category || 'products'} with ${params.delivery || 'home'} delivery`
+                            },
+                            price: { value: "200", currency: "INR" },
+                            matched: true
+                        }]
+                    }]
+                },
+                dhp: {
+                    descriptor: { name: "Healthcare Services" },
+                    providers: [{
+                        id: "healthcare-provider-1",
+                        descriptor: { name: "HealthCare Plus" },
+                        items: [{
+                            id: "consultation-1",
+                            descriptor: { 
+                                name: `${params.specialty || 'General'} Consultation`,
+                                short_desc: `${params.consultationType || 'Online'} ${params.specialty || 'general'} consultation - ${params.urgency || 'routine'}`
+                            },
+                            price: { value: "500", currency: "INR" },
+                            matched: true
+                        }]
+                    }]
+                },
+                dsep: {
+                    descriptor: { name: "Education Services" },
+                    providers: [{
+                        id: "education-provider-1",
+                        descriptor: { name: "LearnHub" },
+                        items: [{
+                            id: "course-1",
+                            descriptor: { 
+                                name: `${params.subject || 'Programming'} Course`,
+                                short_desc: `${params.level || 'Beginner'} level ${params.subject || 'programming'} course - ${params.duration || '1-month'} duration`
+                            },
+                            price: { value: "2000", currency: "INR" },
+                            matched: true
+                        }]
+                    }]
+                },
+                logistics: {
+                    descriptor: { name: "Logistics Services" },
+                    providers: [{
+                        id: "logistics-provider-1",
+                        descriptor: { name: "FastDelivery" },
+                        items: [{
+                            id: "delivery-1",
+                            descriptor: { 
+                                name: `${params.packageType || 'Standard'} Package Delivery`,
+                                short_desc: `From ${params.origin || 'Origin'} to ${params.destination || 'Destination'} - ${params.packageType || 'standard'} handling`
+                            },
+                            price: { value: "100", currency: "INR" },
+                            matched: true
+                        }]
+                    }]
+                }
+            };
+
+            return {
+                context: baseContext,
+                message: {
+                    catalog: mockCatalogs[domain] || { providers: [] }
+                }
+            };
+        }
+
+        function generateId() {
+            return Math.random().toString(36).substring(2) + Date.now().toString(36);
+        }
+    </script>
+</body>
+</html>
